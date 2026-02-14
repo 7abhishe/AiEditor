@@ -1,0 +1,57 @@
+"""
+CodeGenie AI Editor — Code Completion Endpoint
+POST /api/v1/completion — Get inline code completion from Gemini
+"""
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+
+from app.core.api_key_auth import get_current_api_key
+from app.models.models import APIKey
+from app.services.ai_service import ai_service
+from app.core.config import settings
+
+router = APIRouter(prefix="/completion", tags=["Code Completion"])
+
+
+class CompletionRequest(BaseModel):
+    prefix: str = Field(..., description="Code before the cursor")
+    suffix: str = Field("", description="Code after the cursor")
+    language: str = Field("", description="Programming language")
+
+
+class CompletionResponse(BaseModel):
+    completion: str
+    model: str
+
+
+@router.post("", response_model=CompletionResponse)
+async def get_completion(
+    payload: CompletionRequest,
+    current_key: APIKey = Depends(get_current_api_key),
+):
+    """Generate inline code completion using Gemini."""
+    try:
+        prompt = (
+            f"You are an expert code completion engine. Complete the following {payload.language} code. "
+            f"Return ONLY the completion text — no explanation, no markdown, no code fences. "
+            f"The completion should naturally continue from where the code ends.\n\n"
+            f"Code before cursor:\n{payload.prefix}\n"
+        )
+        if payload.suffix:
+            prompt += f"\nCode after cursor:\n{payload.suffix}\n"
+
+        response = await ai_service.generate_response(message=prompt)
+
+        # Clean up: remove code fences if model adds them
+        completion = response.strip()
+        if completion.startswith("```"):
+            lines = completion.split("\n")
+            completion = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
+
+        return CompletionResponse(
+            completion=completion,
+            model=settings.gemini_model,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Completion error: {str(e)}")

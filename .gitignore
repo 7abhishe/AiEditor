@@ -1,0 +1,52 @@
+# ── Environment ──────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+*.egg
+.pytest_cache/
+
+# ── Node / Electron ─────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+release/
+out/
+
+# ── IDE ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+
+# ── FAISS / Vector Indexes ──────────────────────────────
+*.faiss
+*.index
+faiss_index/
+
+# ── Database ─────────────────────────────────────────────
+*.db
+*.sqlite3
+
+# ── Private / Requirement Docs ──────────────────────────
+# BRD and internal requirement documents (keep private)
+AI_Code_Editor_BRD*.docx
+AI_Code_Editor_BRD*.pages
+*.pages
+architect*.md 
+

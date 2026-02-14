@@ -1,0 +1,59 @@
+{
+    "name": "codegenie-editor",
+    "private": true,
+    "version": "0.1.0",
+    "description": "CodeGenie AI Editor — AI-powered code editor",
+    "type": "module",
+    "main": "electron/main.js",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+        "electron:build": "vite build && electron-builder"
+    },
+    "build": {
+        "appId": "com.codegenie.editor",
+        "productName": "CodeGenie",
+        "files": [
+            "dist/**/*",
+            "electron/**/*"
+        ],
+        "mac": {
+            "target": "dmg",
+            "icon": "public/icon.icns",
+            "category": "public.app-category.developer-tools"
+        },
+        "win": {
+            "target": "nsis",
+            "icon": "public/icon.ico"
+        },
+        "linux": {
+            "target": "AppImage",
+            "icon": "public/icon.png",
+            "category": "Development"
+        },
+        "directories": {
+            "output": "release"
+        }
+    },
+    "dependencies": {
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "@monaco-editor/react": "^4.7.0",
+        "react-markdown": "^9.0.3",
+        "react-syntax-highlighter": "^15.6.1",
+        "react-split-pane": "^0.1.92",
+        "lucide-react": "^0.469.0"
+    },
+    "devDependencies": {
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "vite": "^6.0.0",
+        "electron": "^33.0.0",
+        "electron-builder": "^25.0.0",
+        "concurrently": "^9.0.0",
+        "wait-on": "^8.0.0"
+    }
+}
