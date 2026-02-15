@@ -9,9 +9,12 @@ python-multipart==0.0.20
 
 # Database
 sqlalchemy[asyncio]==2.0.36
-# asyncpg==0.30.0  # Uncomment when PostgreSQL is needed
-# psycopg2-binary==2.9.10  # Uncomment when PostgreSQL is installed locally
+asyncpg==0.30.0
 alembic==1.14.1
+
+# Production Server
+gunicorn==23.0.0
+uvloop==0.21.0
 
 # Settings & Environment
 pydantic-settings==2.7.1

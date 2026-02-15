@@ -10,16 +10,28 @@ from app.core.config import settings
 
 
 # ── Engine ───────────────────────────────────────────────
-# Use connect_args for SQLite compatibility
-connect_args = {}
-if settings.database_url.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+# Configure engine based on database type
+# Use async_database_url which auto-converts postgresql:// to postgresql+asyncpg://
+db_url = settings.async_database_url
+is_sqlite = db_url.startswith("sqlite")
 
-engine = create_async_engine(
-    settings.database_url,
-    echo=settings.debug,
-    connect_args=connect_args,
-)
+if is_sqlite:
+    # SQLite: local development
+    engine = create_async_engine(
+        db_url,
+        echo=settings.debug,
+        connect_args={"check_same_thread": False},
+    )
+else:
+    # PostgreSQL: production with connection pooling
+    engine = create_async_engine(
+        db_url,
+        echo=settings.debug,
+        pool_size=20,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800,
+    )
 
 # ── Session Factory ──────────────────────────────────────
 async_session = async_sessionmaker(

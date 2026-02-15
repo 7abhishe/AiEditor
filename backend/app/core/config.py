@@ -24,10 +24,25 @@ class Settings(BaseSettings):
     app_name: str = "CodeGenie AI Editor"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    debug: bool = True
+    port: int = 8000  # Render sets PORT env var
+    debug: bool = False  # Default to False (safe for production)
 
     # ── Database ─────────────────────────────────────────
     database_url: str = "sqlite+aiosqlite:///./codegenie.db"
+
+    @property
+    def async_database_url(self) -> str:
+        """Convert database URL to async-compatible format.
+
+        Render.com provides: postgresql://user:pass@host/db
+        SQLAlchemy needs:    postgresql+asyncpg://user:pass@host/db
+        """
+        url = self.database_url
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        return url
 
     # ── Redis ────────────────────────────────────────────
     redis_url: str = "redis://localhost:6379"
