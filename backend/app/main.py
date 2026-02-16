@@ -28,7 +28,9 @@ async def lifespan(app: FastAPI):
 
     print("✅ CodeGenie AI Editor backend started successfully!")
     print(f"📡 Gemini Model: {settings.gemini_model}")
-    print(f"🗄️  Database: {settings.database_url}")
+    # Mask password in database URL for logs
+    db_display = settings.database_url.split("@")[-1] if "@" in settings.database_url else settings.database_url
+    print(f"🗄️  Database: ...@{db_display}")
 
     yield
 
