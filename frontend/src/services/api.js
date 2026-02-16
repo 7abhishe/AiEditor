@@ -3,7 +3,7 @@
  * HTTP client for communicating with the FastAPI backend.
  */
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://codegenie-backend-27y2.onrender.com';
 let API_KEY = localStorage.getItem('codegenie_api_key') || '';
 
 export function setApiKey(key) {
