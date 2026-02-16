@@ -73,7 +73,7 @@ app.include_router(api_router)
 
 
 # ── Health Check ─────────────────────────────────────────
-@app.get("/", response_model=HealthResponse, tags=["Health"])
+@app.api_route("/", methods=["GET", "HEAD"], response_model=HealthResponse, tags=["Health"])
 async def health_check():
     """Root health check endpoint."""
     return HealthResponse(
@@ -83,7 +83,7 @@ async def health_check():
     )
 
 
-@app.get("/health", response_model=HealthResponse, tags=["Health"])
+@app.api_route("/health", methods=["GET", "HEAD"], response_model=HealthResponse, tags=["Health"])
 async def health():
     """Health check endpoint."""
     return HealthResponse(
