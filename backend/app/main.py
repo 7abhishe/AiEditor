@@ -54,11 +54,7 @@ app = FastAPI(
 
 # ── CORS Middleware ──────────────────────────────────────
 # In production, restrict origins; in development, allow all
-allowed_origins = ["*"] if settings.debug else [
-    "https://codegenie-frontend.onrender.com",
-    "http://localhost:5173",  # Local Electron dev
-    "http://localhost:3000",
-]
+allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

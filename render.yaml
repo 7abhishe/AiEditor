@@ -33,3 +33,13 @@ services:
         value: "false"
       - key: PYTHON_VERSION
         value: "3.12.0"
+
+  - type: static
+    name: codegenie-frontend
+    repo: https://github.com/7abhishe/AiEditor
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://codegenie-backend-27y2.onrender.com
