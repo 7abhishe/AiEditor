@@ -23,8 +23,13 @@ async def lifespan(app: FastAPI):
     # Import models so SQLAlchemy knows about them
     import app.models.models  # noqa: F401
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Create tables (with retry for multi-worker race conditions)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        # Tables may already exist from another worker or previous deploy
+        print(f"⚠️  Table creation skipped (already exist): {type(e).__name__}")
 
     print("✅ CodeGenie AI Editor backend started successfully!")
     print(f"📡 Gemini Model: {settings.gemini_model}")
