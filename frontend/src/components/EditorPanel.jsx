@@ -61,11 +61,43 @@ export default function EditorPanel({ onExplain, onFindBugs, onRefactor, onGener
         setActiveTab(tabs.length);
     }, [tabs]);
 
-    const handleOpenFile = async () => {
+    const handleOpenFile = useCallback(async () => {
         if (window.electronAPI) {
             await window.electronAPI.openFile();
+        } else {
+            // Web fallback for normal browser access!
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const ext = file.name.split('.').pop();
+                    openFileTab({
+                        filePath: file.name, // Without Electron we don't have a real path, just the name
+                        fileName: file.name,
+                        content: ev.target.result,
+                        ext: ext
+                    });
+                };
+                reader.readAsText(file);
+            };
+            input.click();
         }
-    };
+    }, [openFileTab]);
+
+    // Global keyboard shortcut for Cmd+O
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'o') {
+                e.preventDefault();
+                handleOpenFile(); // Trigger our updated handler
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleOpenFile]);
 
     const handleSave = async () => {
         if (activeTab === null || !tabs[activeTab]) return;
@@ -235,7 +267,7 @@ export default function EditorPanel({ onExplain, onFindBugs, onRefactor, onGener
                     <h2 style={{ fontSize: '18px', fontWeight: 600 }}>CodeGenie AI Editor</h2>
                     <p>Open a file to start editing</p>
                     <p>
-                        <kbd>⌘O</kbd> to open a file
+                        <kbd>{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'} + O</kbd> to open a file
                     </p>
                     <button
                         className="icon-btn"
