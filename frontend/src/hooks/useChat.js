@@ -21,13 +21,23 @@ export default function useChat() {
 
     const send = useCallback(async (text, context = null) => {
         if (!text.trim() || isLoading) return;
-        if (!getApiKey()) {
-            setError('No API key set. Click the ⚙️ icon to configure.');
-            return;
-        }
 
         const userMessage = { role: 'user', content: text, id: Date.now() };
         setMessages(prev => [...prev, userMessage]);
+
+        if (!getApiKey()) {
+            const errorMsg = 'No API key set. Click the ⚙️ (settings) icon in the top right to configure your API key.';
+            setError(errorMsg);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `⚠️ Error: ${errorMsg}`,
+                id: Date.now() + 1,
+                isError: true,
+            }]);
+            scrollToBottom();
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         scrollToBottom();
