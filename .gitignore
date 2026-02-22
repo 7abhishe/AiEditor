@@ -48,5 +48,7 @@ faiss_index/
 AI_Code_Editor_BRD*.docx
 AI_Code_Editor_BRD*.pages
 *.pages
-architect*.md 
+architect*.md
+extract_db.py
+
 
