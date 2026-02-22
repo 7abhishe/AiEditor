@@ -21,8 +21,9 @@ async function request(endpoint, options = {}) {
         ...options.headers,
     };
 
-    if (API_KEY) {
-        headers['X-API-Key'] = API_KEY;
+    const token = localStorage.getItem('cg_access_token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
     }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {

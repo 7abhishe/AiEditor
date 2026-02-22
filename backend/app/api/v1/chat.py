@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey, Conversation, Message
+from app.core.auth import get_current_user
+from app.models.models import User, Conversation, Message
 from app.schemas.schemas import ChatRequest, ChatResponse
 from app.services.ai_service import ai_service
 from app.services.vector_store import vector_store
@@ -43,7 +43,7 @@ async def _build_rag_context(query: str) -> str:
 @router.post("", response_model=ChatResponse)
 async def chat_with_ai(
     payload: ChatRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -57,7 +57,7 @@ async def chat_with_ai(
             conversation_id = payload.conversation_id
         else:
             conversation = Conversation(
-                api_key_id=current_key.id,
+                user_id=current_user.id,
                 title=payload.message[:50] + "..." if len(payload.message) > 50 else payload.message,
             )
             db.add(conversation)

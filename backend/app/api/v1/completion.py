@@ -6,8 +6,8 @@ POST /api/v1/completion — Get inline code completion from Gemini
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey
+from app.core.auth import get_current_user
+from app.models.models import User
 from app.services.ai_service import ai_service
 from app.core.config import settings
 
@@ -28,7 +28,7 @@ class CompletionResponse(BaseModel):
 @router.post("", response_model=CompletionResponse)
 async def get_completion(
     payload: CompletionRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Generate inline code completion using Gemini."""
     try:

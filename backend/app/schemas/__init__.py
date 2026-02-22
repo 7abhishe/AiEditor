@@ -1,8 +1,9 @@
 # Schemas module init
 from app.schemas.schemas import (
-    APIKeyCreate,
-    APIKeyResponse,
-    APIKeyInfo,
+    UserCreate,
+    UserResponse,
+    Token,
+    TokenData,
     ChatRequest,
     ChatResponse,
     HealthResponse,
@@ -10,9 +11,10 @@ from app.schemas.schemas import (
 )
 
 __all__ = [
-    "APIKeyCreate",
-    "APIKeyResponse",
-    "APIKeyInfo",
+    "UserCreate",
+    "UserResponse",
+    "Token",
+    "TokenData",
     "ChatRequest",
     "ChatResponse",
     "HealthResponse",

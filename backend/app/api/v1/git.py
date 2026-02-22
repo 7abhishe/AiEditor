@@ -5,8 +5,8 @@ Provides REST endpoints for Git operations.
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey
+from app.core.auth import get_current_user
+from app.models.models import User
 from app.services.git_service import git_service
 
 router = APIRouter(prefix="/git", tags=["git"])
@@ -36,7 +36,7 @@ class StageRequest(BaseModel):
 @router.post("/project")
 async def set_project(
     req: SetProjectRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Set the active project path for Git operations."""
     git_service.set_project_path(req.project_path)
@@ -51,7 +51,7 @@ async def set_project(
 @router.get("/status")
 async def get_status(
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Get the working tree status (modified, staged, untracked files)."""
     if project_path:
@@ -74,7 +74,7 @@ async def get_diff(
     file_path: str | None = Query(None, description="Specific file to diff"),
     staged: bool = Query(False, description="Show staged changes"),
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Get the diff for working tree changes."""
     if project_path:
@@ -91,7 +91,7 @@ async def get_diff(
 async def get_log(
     count: int = Query(20, ge=1, le=100, description="Number of commits to fetch"),
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Get recent commit history."""
     if project_path:
@@ -107,7 +107,7 @@ async def get_log(
 @router.get("/branches")
 async def get_branches(
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Get list of branches."""
     if project_path:
@@ -125,7 +125,7 @@ async def get_branches(
 async def commit_changes(
     req: CommitRequest,
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Commit changes. If no message provided, AI generates one from the diff."""
     if project_path:
@@ -153,7 +153,7 @@ async def commit_changes(
 async def checkout_branch(
     req: CheckoutRequest,
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Switch to a different branch."""
     if project_path:
@@ -170,7 +170,7 @@ async def checkout_branch(
 async def stage_file(
     req: StageRequest,
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Stage or unstage a specific file."""
     if project_path:
@@ -194,7 +194,7 @@ async def stage_file(
 @router.post("/ai-message")
 async def generate_ai_commit_message(
     project_path: str | None = Query(None, description="Optional project path override"),
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Generate an AI commit message from the current diff without committing."""
     if project_path:

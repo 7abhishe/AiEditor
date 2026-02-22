@@ -5,8 +5,8 @@ Enhanced search endpoint with result grouping and previews.
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey
+from app.core.auth import get_current_user
+from app.models.models import User
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -20,7 +20,7 @@ class SearchRequest(BaseModel):
 @router.post("")
 async def semantic_search(
     req: SearchRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Perform semantic search across the indexed codebase.

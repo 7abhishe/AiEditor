@@ -5,8 +5,8 @@ Refactoring that spans multiple files using AI + FAISS context.
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey
+from app.core.auth import get_current_user
+from app.models.models import User
 from app.services.ai_service import ai_service
 
 router = APIRouter(prefix="/refactor", tags=["refactor-multi"])
@@ -22,7 +22,7 @@ class MultiRefactorRequest(BaseModel):
 @router.post("/multi")
 async def multi_file_refactor(
     req: MultiRefactorRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Refactor across multiple files. Returns per-file diffs and refactored content.

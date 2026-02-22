@@ -8,8 +8,8 @@ POST /api/v1/index/search — Semantic search over indexed code
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey
+from app.core.auth import get_current_user
+from app.models.models import User
 from app.services.indexing_service import indexing_service
 from app.services.vector_store import vector_store
 
@@ -43,7 +43,7 @@ class SearchResponse(BaseModel):
 async def start_indexing(
     payload: IndexRequest,
     background_tasks: BackgroundTasks,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Start indexing a project folder in the background."""
     import os
@@ -68,7 +68,7 @@ async def start_indexing(
 
 @router.get("/status")
 async def get_index_status(
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Get current indexing progress."""
     progress = indexing_service.get_progress()
@@ -79,7 +79,7 @@ async def get_index_status(
 @router.post("/search", response_model=SearchResponse)
 async def search_code(
     payload: SearchRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Semantic search over indexed code chunks."""
     if vector_store.total_chunks == 0:

@@ -28,45 +28,55 @@ async def test_health_endpoint(async_client):
     assert data["status"] == "ok"
 
 
-# ── API Key Tests ───────────────────────────────────────
+# ── Auth Tests ───────────────────────────────────────
 
 
 @pytest.mark.asyncio
-async def test_create_api_key(async_client):
-    """POST /api/v1/keys creates a new API key."""
+async def test_signup(async_client):
+    """POST /api/v1/auth/signup registers a new user."""
     response = await async_client.post(
-        "/api/v1/keys",
-        json={"name": "test-key"},
+        "/api/v1/auth/signup",
+        json={"email": "newuser@example.com", "password": "password123"},
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == "newuser@example.com"
+    assert "id" in data
+
+
+@pytest.mark.asyncio
+async def test_signup_duplicate(async_client):
+    """POST /api/v1/auth/signup prevents duplicate emails."""
+    # First signup
+    await async_client.post(
+        "/api/v1/auth/signup",
+        json={"email": "dup@example.com", "password": "password123"},
+    )
+    # Second signup should fail
+    response = await async_client.post(
+        "/api/v1/auth/signup",
+        json={"email": "dup@example.com", "password": "password123"},
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_login_success(async_client):
+    """POST /api/v1/auth/login returns a JWT for valid credentials."""
+    # Create user
+    await async_client.post(
+        "/api/v1/auth/signup",
+        json={"email": "login@example.com", "password": "password123"},
+    )
+    # Login
+    response = await async_client.post(
+        "/api/v1/auth/login",
+        data={"username": "login@example.com", "password": "password123"},
     )
     assert response.status_code == 200
     data = response.json()
-    assert "key" in data
-    assert data["name"] == "test-key"
-    assert data["key"].startswith("cg_")
-
-
-@pytest.mark.asyncio
-async def test_list_api_keys(async_client):
-    """GET /api/v1/keys returns list of keys."""
-    # Create a key first
-    await async_client.post("/api/v1/keys", json={"name": "list-test"})
-    response = await async_client.get("/api/v1/keys")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert len(data) >= 1
-
-
-@pytest.mark.asyncio
-async def test_validate_api_key(async_client):
-    """API with valid key returns 200."""
-    # Create a key
-    create_resp = await async_client.post("/api/v1/keys", json={"name": "validate-test"})
-    key = create_resp.json()["key"]
-
-    # Use the key for a health check
-    resp = await async_client.get("/", headers={"X-API-Key": key})
-    assert resp.status_code == 200
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
 
 
 # ── Chat Tests ──────────────────────────────────────────

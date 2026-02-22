@@ -7,8 +7,8 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from app.core.api_key_auth import get_current_api_key
-from app.models.models import APIKey
+from app.core.auth import get_current_user
+from app.models.models import User
 from app.services.agent_service import agent_service
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -28,7 +28,7 @@ class AgentApproveRequest(BaseModel):
 @router.post("/run")
 async def run_agent(
     req: AgentRunRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Start an autonomous agent task.
@@ -58,7 +58,7 @@ async def run_agent(
 @router.post("/run-sync")
 async def run_agent_sync(
     req: AgentRunRequest,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Run an agent task synchronously (returns final result).
@@ -84,7 +84,7 @@ async def run_agent_sync(
 @router.get("/status/{task_id}")
 async def get_task_status(
     task_id: str,
-    current_key: APIKey = Depends(get_current_api_key),
+    current_user: User = Depends(get_current_user),
 ):
     """Get the status of an agent task."""
     status = agent_service.get_task_status(task_id)
