@@ -12,7 +12,9 @@ import CommandPalette from './components/CommandPalette.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { ToastProvider, useToast } from './components/ToastProvider.jsx';
 import useChat from './hooks/useChat.js';
-import { getApiKey, setApiKey, detectBugs, refactorCode, generateTests } from './services/api.js';
+import { AuthProvider, useAuth } from './store/AuthContext.jsx';
+import LoginModal from './components/LoginModal.jsx';
+import { detectBugs, refactorCode, generateTests } from './services/api.js';
 
 // Lazy-load heavy sidebar panels for better initial load
 const GitPanel = lazy(() => import('./components/GitPanel.jsx'));
@@ -21,11 +23,11 @@ const SearchPanel = lazy(() => import('./components/SearchPanel.jsx'));
 function AppInner() {
     const chat = useChat();
     const toast = useToast();
+    const { isAuthenticated, logout } = useAuth();
     const [showSidebar, setShowSidebar] = useState(true);
     const [sidebarTab, setSidebarTab] = useState('chat'); // 'chat' | 'search' | 'git'
     const [showSettings, setShowSettings] = useState(false);
     const [showPalette, setShowPalette] = useState(false);
-    const [apiKeyInput, setApiKeyInput] = useState(getApiKey());
     const [sidebarWidth, setSidebarWidth] = useState(380);
     const [projectPath, setProjectPath] = useState('');
     const [editorInfo, setEditorInfo] = useState({ language: '', cursor: null });
@@ -223,7 +225,7 @@ function AppInner() {
     }, [chat, toast]);
 
     const handleSaveSettings = () => {
-        setApiKey(apiKeyInput);
+        // Obsolete function kept empty, logic replaced by AuthContext
         setShowSettings(false);
         toast.success('Settings saved');
     };
@@ -245,6 +247,9 @@ function AppInner() {
                     <button className="icon-btn" onClick={() => setShowSettings(true)} title="Settings (⌘,)">
                         ⚙️
                     </button>
+                    <button className="icon-btn" onClick={() => { logout(); toast.info('Logged out') }} title="Logout">
+                        🚪
+                    </button>
                     <button
                         className="icon-btn"
                         onClick={() => setShowSidebar(!showSidebar)}
@@ -257,6 +262,7 @@ function AppInner() {
 
             {/* Main Body */}
             <div className="app-body">
+                {!isAuthenticated && <LoginModal />}
                 <EditorPanel
                     onExplain={handleExplain}
                     onFindBugs={handleFindBugs}
@@ -337,13 +343,6 @@ function AppInner() {
                 <div className="modal-overlay" onClick={() => setShowSettings(false)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <h3>⚙️ Settings</h3>
-                        <label>API Key</label>
-                        <input
-                            type="password"
-                            value={apiKeyInput}
-                            onChange={(e) => setApiKeyInput(e.target.value)}
-                            placeholder="cg_your_api_key_here"
-                        />
                         <label style={{ marginTop: '12px' }}>Project Path (for Git & Search)</label>
                         <input
                             type="text"
@@ -373,9 +372,11 @@ function AppInner() {
 export default function App() {
     return (
         <ErrorBoundary>
-            <ToastProvider>
-                <AppInner />
-            </ToastProvider>
+            <AuthProvider>
+                <ToastProvider>
+                    <AppInner />
+                </ToastProvider>
+            </AuthProvider>
         </ErrorBoundary>
     );
 }

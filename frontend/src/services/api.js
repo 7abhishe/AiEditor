@@ -4,16 +4,7 @@
  */
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://codegenie-backend-27y2.onrender.com';
-let API_KEY = localStorage.getItem('codegenie_api_key') || '';
 
-export function setApiKey(key) {
-    API_KEY = key;
-    localStorage.setItem('codegenie_api_key', key);
-}
-
-export function getApiKey() {
-    return API_KEY;
-}
 
 async function request(endpoint, options = {}) {
     const headers = {
@@ -70,16 +61,7 @@ export async function explainCode(code, language = '') {
     });
 }
 
-// ── API Key Management ──────────────────────────────────
 
-export async function createApiKey(label = 'default') {
-    const result = await request('/api/v1/auth/keys', {
-        method: 'POST',
-        body: JSON.stringify({ label }),
-    });
-    setApiKey(result.api_key);
-    return result;
-}
 
 // ── Repository Indexing ─────────────────────────────────
 
@@ -212,7 +194,10 @@ export async function runAgentSync(goal, projectPath, context = null) {
 export function runAgentStream(goal, projectPath, context = null) {
     // Returns an EventSource-like interface for SSE
     const headers = { 'Content-Type': 'application/json' };
-    if (API_KEY) headers['X-API-Key'] = API_KEY;
+    const token = localStorage.getItem('cg_access_token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
 
     return fetch(`${BASE_URL}/api/v1/agent/run`, {
         method: 'POST',

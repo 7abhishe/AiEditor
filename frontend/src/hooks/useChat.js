@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { sendMessage, getApiKey } from '../services/api.js';
+import { sendMessage } from '../services/api.js';
 
 export default function useChat() {
     const [messages, setMessages] = useState([]);
@@ -25,12 +25,12 @@ export default function useChat() {
         const userMessage = { role: 'user', content: text, id: Date.now() };
         setMessages(prev => [...prev, userMessage]);
 
-        if (!getApiKey()) {
-            const errorMsg = 'No API key set. Click the ⚙️ (settings) icon in the top right to configure your API key.';
+        if (!localStorage.getItem('cg_access_token')) {
+            const errorMsg = 'You must be logged in to chat. Please sign in first.';
             setError(errorMsg);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: `⚠️ Error: ${errorMsg}`,
+                content: `⚠️ ${errorMsg}`,
                 id: Date.now() + 1,
                 isError: true,
             }]);
