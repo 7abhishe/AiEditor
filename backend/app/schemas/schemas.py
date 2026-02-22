@@ -9,36 +9,34 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-# ── API Key Schemas ──────────────────────────────────────
+# ── Auth & User Schemas ──────────────────────────────────────
 
-class APIKeyCreate(BaseModel):
-    """Request to create a new API key."""
-    label: str = Field(default="default", max_length=100, description="Human-readable label for this key")
-
-
-class APIKeyResponse(BaseModel):
-    """Response after creating an API key (only time plaintext key is shown)."""
-    key_id: str
-    api_key: str  # Plaintext — shown only once!
-    label: str
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
+class UserCreate(BaseModel):
+    """Request to create a new user account."""
+    email: str = Field(..., description="User's email address")
+    password: str = Field(..., min_length=6, description="User's password")
 
 
-class APIKeyInfo(BaseModel):
-    """Public info about an API key (no secret)."""
-    key_id: str
-    label: str
-    permissions: str
+class UserResponse(BaseModel):
+    """Response showing public user details."""
+    id: str
+    email: str
     is_active: bool
     created_at: datetime
-    last_used_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+
+class Token(BaseModel):
+    """Response when successfully authenticated."""
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    """Data stored inside the JWT."""
+    user_id: Optional[str] = None
 
 
 # ── Chat Schemas ─────────────────────────────────────────

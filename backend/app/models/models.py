@@ -21,26 +21,23 @@ def utc_now():
     return datetime.now(timezone.utc)
 
 
-class APIKey(Base):
-    """API Key for authenticating requests."""
+class User(Base):
+    """A registered user of the CodeGenie application."""
 
-    __tablename__ = "api_keys"
+    __tablename__ = "users"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    key_hash = Column(String(128), unique=True, nullable=False, index=True)
-    label = Column(String(100), nullable=False, default="default")
-    permissions = Column(String(50), nullable=False, default="read,write")
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
-    last_used_at = Column(DateTime(timezone=True), nullable=True)
-    expires_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    projects = relationship("Project", back_populates="api_key", cascade="all, delete-orphan")
-    conversations = relationship("Conversation", back_populates="api_key", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
+    conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<APIKey label={self.label} active={self.is_active}>"
+        return f"<User email={self.email} active={self.is_active}>"
 
 
 class Project(Base):
@@ -49,14 +46,14 @@ class Project(Base):
     __tablename__ = "projects"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    api_key_id = Column(String(36), ForeignKey("api_keys.id"), nullable=False)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     name = Column(String(255), nullable=False)
     root_path = Column(Text, nullable=False)
     last_indexed = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     # Relationships
-    api_key = relationship("APIKey", back_populates="projects")
+    user = relationship("User", back_populates="projects")
     conversations = relationship("Conversation", back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -69,13 +66,13 @@ class Conversation(Base):
     __tablename__ = "conversations"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    api_key_id = Column(String(36), ForeignKey("api_keys.id"), nullable=False)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     project_id = Column(String(36), ForeignKey("projects.id"), nullable=True)
     title = Column(String(255), nullable=False, default="New Conversation")
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     # Relationships
-    api_key = relationship("APIKey", back_populates="conversations")
+    user = relationship("User", back_populates="conversations")
     project = relationship("Project", back_populates="conversations")
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
 
