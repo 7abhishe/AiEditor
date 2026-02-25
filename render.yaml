@@ -35,7 +35,7 @@ services:
         value: "3.12.0"
 
   - type: static_site
-    name: codegenie-frontend
+    name: codegenie-web
     repo: https://github.com/7abhishe/AiEditor
     rootDir: frontend
     buildCommand: npm install && npm run build
