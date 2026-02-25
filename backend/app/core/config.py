@@ -54,5 +54,8 @@ class Settings(BaseSettings):
     # ── API Key Auth ─────────────────────────────────────
     master_api_key: str = "codegenie-master-key-change-me"
 
+    # ── JWT Authentication ────────────────────────────────
+    jwt_secret_key: str = "codegenie-jwt-secret-change-in-production"
+
 
 settings = Settings()

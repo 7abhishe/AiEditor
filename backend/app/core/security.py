@@ -12,8 +12,8 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 
-# Usually these are in .env, but we'll hardcode defaults for the demo
-SECRET_KEY = "super-secret-codegenie-jwt-key!change-me-in-production"
+# JWT Configuration — loaded from environment for production security
+SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
