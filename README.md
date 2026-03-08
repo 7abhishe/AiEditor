@@ -1,19 +1,21 @@
 # ⚡ CodeGenie AI Editor
 
-An AI-powered code editor built with **Electron + React + FastAPI + Google Gemini**, featuring intelligent coding assistance, semantic search, and autonomous coding capabilities.
+An AI-powered code editor built as a **web application** with **React + Vite + FastAPI + Google Gemini**, featuring intelligent coding assistance, semantic search, and autonomous coding capabilities.
 
-![CodeGenie](https://img.shields.io/badge/Version-0.1.0-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Python](https://img.shields.io/badge/Python-3.12-yellow) ![React](https://img.shields.io/badge/React-19-61DAFB)
+![CodeGenie](https://img.shields.io/badge/Version-0.1.0-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Python](https://img.shields.io/badge/Python-3.14-yellow) ![React](https://img.shields.io/badge/React-19-61DAFB) ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)
+
+**🌐 Live:** [codegenie-web.onrender.com](https://codegenie-web.onrender.com) • **📡 API:** [codegenie-backend-27y2.onrender.com](https://codegenie-backend-27y2.onrender.com)
 
 ---
 
 ## ✨ Features
 
 ### 🤖 AI-Powered Editing
-- **Smart Chat** — Ask anything about your code, powered by Google Gemini
+- **Smart Chat** — Ask anything about your code, powered by Google Gemini with RAG context
 - **Code Completion** — Inline AI suggestions as you type
-- **Code Explanation** — Right-click to explain selected code
+- **Code Explanation** — Explain selected code in natural language
 - **Bug Detection** — AI identifies potential bugs and suggests fixes
-- **Refactoring** — Intelligent code improvement suggestions
+- **Refactoring** — Intelligent code improvement suggestions with diffs
 - **Test Generation** — Auto-generate unit tests for your code
 
 ### 🔍 Semantic Search
@@ -22,9 +24,8 @@ An AI-powered code editor built with **Electron + React + FastAPI + Google Gemin
 - Results grouped by file with relevance scores
 
 ### 🔀 Git Integration
-- Built-in source control with Changes, History, and Branches tabs
-- Stage/unstage files, commit, checkout branches
-- AI-generated commit messages
+- Built-in source control with Status, Staging, and Commit
+- AI-generated commit messages from your diffs
 
 ### 🤖 Agentic Mode
 - Autonomous Plan → Execute → Verify loop
@@ -38,20 +39,25 @@ An AI-powered code editor built with **Electron + React + FastAPI + Google Gemin
 - Monaco Editor with bracket colorization, minimap, and more
 - Toast notifications and error boundary
 
+### 🔒 Security Hardened
+- Penetration tested (86% score, 43 test cases)
+- Rate limiting, CORS, security headers, IDOR protection
+- JWT authentication with token refresh
+
 ---
 
 ## 🏗️ Architecture
 
 ```
 ┌────────────────────────────────────────┐
-│           Electron Desktop App         │
+│        Web Browser (React + Vite)      │
 │  ┌──────────────┐  ┌────────────────┐  │
 │  │ Monaco Editor │  │ Sidebar Panels │  │
-│  │  (React)      │  │ Chat/Search/Git│  │
+│  │              │  │ Chat/Search/Git│  │
 │  └──────────────┘  └────────────────┘  │
-│           React + Vite Frontend        │
+│          Login / Signup (JWT)          │
 └────────────────────┬───────────────────┘
-                     │ HTTP / SSE
+                     │ HTTPS REST + JWT
 ┌────────────────────┴───────────────────┐
 │         FastAPI Backend                │
 │  ┌──────────┐ ┌──────────┐ ┌────────┐ │
@@ -60,7 +66,7 @@ An AI-powered code editor built with **Electron + React + FastAPI + Google Gemin
 │  └──────────┘ └──────────┘ └────────┘ │
 │  ┌──────────┐ ┌──────────────────────┐ │
 │  │ FAISS    │ │ SQLite / PostgreSQL  │ │
-│  │ Vectors  │ │ Database             │ │
+│  │ Vectors  │ │ (Render.com)         │ │
 │  └──────────┘ └──────────────────────┘ │
 └────────────────────────────────────────┘
 ```
@@ -70,7 +76,7 @@ An AI-powered code editor built with **Electron + React + FastAPI + Google Gemin
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.12+**
+- **Python 3.11+**
 - **Node.js 20+**
 - **Google Gemini API Key** ([Get one here](https://aistudio.google.com/apikey))
 
@@ -84,28 +90,21 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment
 ```bash
-# Create .env file in the project root
 cp .env.example .env
 # Edit .env and add your Gemini API key
 ```
 
-```env
-GEMINI_API_KEY=your_api_key_here
-GEMINI_MODEL=gemini-2.0-flash
-DATABASE_URL=sqlite+aiosqlite:///./codegenie.db
-```
-
 ### 3. Run Backend
 ```bash
+cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
-### 4. Setup & Run Frontend
+### 4. Run Frontend
 ```bash
 cd frontend
 npm install
-npm run dev          # Web mode (http://localhost:5173)
-npm run electron:dev # Desktop mode (Electron)
+npm run dev          # http://localhost:5173
 ```
 
 ---
@@ -118,18 +117,13 @@ npm run electron:dev # Desktop mode (Electron)
 | `⌘B` | Toggle Sidebar |
 | `⌘⇧F` | Semantic Search |
 | `⌘S` | Save File |
-| `⌘,` | Settings |
 
 ---
 
-## 🐳 Docker Deployment
+## 🐳 Docker
 
 ```bash
-# Start backend + PostgreSQL + Redis
-docker-compose up -d
-
-# Build Electron app
-cd frontend && npm run electron:build
+docker compose up --build
 ```
 
 ---
@@ -139,23 +133,27 @@ cd frontend && npm run electron:build
 ```
 ├── backend/
 │   ├── app/
-│   │   ├── api/v1/          # REST API endpoints
-│   │   ├── core/            # Config, database
+│   │   ├── api/v1/          # 13 REST API endpoints
+│   │   ├── core/            # Config, auth, security, rate limiting
 │   │   ├── models/          # SQLAlchemy models
 │   │   ├── schemas/         # Pydantic schemas
-│   │   └── services/        # AI, Git, Agent services
-│   ├── tests/               # pytest test suite
+│   │   └── services/        # AI, Git, Agent, Indexing services
+│   ├── tests/
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
-│   ├── electron/            # Main process + preload
 │   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── hooks/           # Custom hooks
+│   │   ├── components/      # 10 React components
 │   │   └── services/        # API client
 │   └── package.json
+├── .env.example             # Environment template
+├── .github/workflows/       # CI/CD pipeline
 ├── docker-compose.yml
-└── architect.md             # Full architecture doc
+├── architect.md             # Full architecture document
+├── API.md                   # API documentation
+├── DEPLOYMENT.md            # Deployment guide
+├── SECURITY.md              # Security policy
+└── CONTRIBUTING.md          # Contributing guide
 ```
 
 ---
@@ -164,14 +162,16 @@ cd frontend && npm run electron:build
 
 | Layer | Technology |
 |-------|-----------|
-| Desktop | Electron 33 |
 | Frontend | React 19 + Vite 6 |
 | Editor | Monaco Editor |
-| Backend | FastAPI (Python 3.12) |
-| AI | Google Gemini |
+| Backend | FastAPI (Python 3.14) |
+| AI | Google Gemini (gemini-3-flash-preview) |
 | Vector DB | FAISS |
-| Database | SQLite / PostgreSQL |
-| Cache | Redis |
+| Database | SQLite (dev) / PostgreSQL (prod) |
+| Auth | JWT (python-jose + passlib) |
+| Security | slowapi rate limiting |
+| Hosting | Render.com |
+| CI/CD | GitHub Actions |
 
 ---
 
