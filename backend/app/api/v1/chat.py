@@ -1,14 +1,17 @@
 """
 CodeGenie AI Editor — Chat Endpoint
 POST /api/v1/chat — Send a message to Gemini AI (RAG-enhanced)
+Security-hardened with conversation ownership checks and error sanitization.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.auth import get_current_user
+from app.core.rate_limit import limiter
 from app.models.models import User, Conversation, Message
 from app.schemas.schemas import ChatRequest, ChatResponse
 from app.services.ai_service import ai_service
@@ -41,7 +44,9 @@ async def _build_rag_context(query: str) -> str:
 
 
 @router.post("", response_model=ChatResponse)
+@limiter.limit("30/minute")
 async def chat_with_ai(
+    request: Request,
     payload: ChatRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -49,13 +54,28 @@ async def chat_with_ai(
     """
     Send a message to the Gemini AI and get a response.
     Automatically enriches with RAG context from indexed code.
-    Requires a valid API key via X-API-Key header.
+    Rate limited to 30 requests per minute per IP.
     """
     try:
-        # Get or create conversation
+        # ── Conversation ownership check (SECURITY FIX) ──
         if payload.conversation_id:
-            conversation_id = payload.conversation_id
+            # Verify the conversation exists AND belongs to the current user
+            result = await db.execute(
+                select(Conversation).where(
+                    Conversation.id == payload.conversation_id,
+                    Conversation.user_id == current_user.id,
+                )
+            )
+            conversation = result.scalar_one_or_none()
+            
+            if not conversation:
+                raise HTTPException(
+                    status_code=403,
+                    detail="You don't have access to this conversation.",
+                )
+            conversation_id = conversation.id
         else:
+            # Create new conversation owned by current user
             conversation = Conversation(
                 user_id=current_user.id,
                 title=payload.message[:50] + "..." if len(payload.message) > 50 else payload.message,
@@ -102,9 +122,14 @@ async def chat_with_ai(
             model=settings.gemini_model,
         )
 
+    except HTTPException:
+        # Re-raise our own HTTP exceptions (like the 403 above)
+        raise
     except Exception as e:
+        # ── Sanitize error messages (SECURITY FIX) ──
+        # Don't expose raw exception details to the client
+        error_type = type(e).__name__
         raise HTTPException(
             status_code=500,
-            detail=f"AI service error: {str(e)}",
+            detail=f"An internal error occurred. Please try again later. (ref: {error_type})",
         )
-

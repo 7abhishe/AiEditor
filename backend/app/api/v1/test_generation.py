@@ -3,7 +3,9 @@ CodeGenie AI Editor — Test Generation Endpoint
 POST /api/v1/tests/generate — Generate unit tests for given code.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from app.core.rate_limit import limiter
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
@@ -43,7 +45,9 @@ class TestGenResponse(BaseModel):
 
 
 @router.post("/generate", response_model=TestGenResponse)
+@limiter.limit("30/minute")
 async def generate_tests(
+    request: Request,
     payload: TestGenRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -110,4 +114,4 @@ Code to test:
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Test generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred. Please try again. (ref: {type(e).__name__})")

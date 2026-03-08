@@ -3,7 +3,9 @@ CodeGenie AI Editor — Code Completion Endpoint
 POST /api/v1/completion — Get inline code completion from Gemini
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from app.core.rate_limit import limiter
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
@@ -26,7 +28,9 @@ class CompletionResponse(BaseModel):
 
 
 @router.post("", response_model=CompletionResponse)
+@limiter.limit("30/minute")
 async def get_completion(
+    request: Request,
     payload: CompletionRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -54,4 +58,4 @@ async def get_completion(
             model=settings.gemini_model,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Completion error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred. Please try again. (ref: {type(e).__name__})")

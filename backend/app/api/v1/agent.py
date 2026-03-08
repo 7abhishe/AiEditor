@@ -4,7 +4,8 @@ Provides REST + SSE endpoints for the autonomous coding agent.
 """
 
 import json
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from app.core.rate_limit import limiter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from app.core.auth import get_current_user
@@ -26,7 +27,9 @@ class AgentApproveRequest(BaseModel):
 
 
 @router.post("/run")
+@limiter.limit("15/minute")
 async def run_agent(
+    request: Request,
     req: AgentRunRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -56,7 +59,9 @@ async def run_agent(
 
 
 @router.post("/run-sync")
+@limiter.limit("15/minute")
 async def run_agent_sync(
+    request: Request,
     req: AgentRunRequest,
     current_user: User = Depends(get_current_user),
 ):

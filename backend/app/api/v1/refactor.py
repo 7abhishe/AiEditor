@@ -3,7 +3,9 @@ CodeGenie AI Editor — Refactoring Engine Endpoint
 POST /api/v1/refactor — Suggest code improvements with before/after diffs.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from app.core.rate_limit import limiter
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
@@ -34,7 +36,9 @@ class RefactorResponse(BaseModel):
 
 
 @router.post("", response_model=RefactorResponse)
+@limiter.limit("30/minute")
 async def refactor_code(
+    request: Request,
     payload: RefactorRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -106,4 +110,4 @@ Code:
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Refactoring error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred. Please try again. (ref: {type(e).__name__})")

@@ -3,7 +3,9 @@ CodeGenie AI Editor — Bug Detection Endpoint
 POST /api/v1/bugs/detect — Analyze code for bugs, security issues, and anti-patterns.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from app.core.rate_limit import limiter
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
@@ -35,7 +37,9 @@ class BugDetectResponse(BaseModel):
 
 
 @router.post("/detect", response_model=BugDetectResponse)
+@limiter.limit("30/minute")
 async def detect_bugs(
+    request: Request,
     payload: BugDetectRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -103,4 +107,4 @@ Code:
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Bug detection error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred. Please try again. (ref: {type(e).__name__})")

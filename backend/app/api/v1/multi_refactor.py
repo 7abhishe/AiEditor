@@ -3,7 +3,8 @@ CodeGenie AI Editor — Multi-file Refactoring API
 Refactoring that spans multiple files using AI + FAISS context.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from app.core.rate_limit import limiter
 from pydantic import BaseModel, Field
 from app.core.auth import get_current_user
 from app.models.models import User
@@ -20,7 +21,9 @@ class MultiRefactorRequest(BaseModel):
 
 
 @router.post("/multi")
+@limiter.limit("15/minute")
 async def multi_file_refactor(
+    request: Request,
     req: MultiRefactorRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -101,4 +104,4 @@ Return ONLY the JSON array."""
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Multi-file refactoring failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred. Please try again. (ref: {type(e).__name__})")

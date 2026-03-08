@@ -1,14 +1,19 @@
 """
 CodeGenie AI Editor — FastAPI Application Entry Point
+Security-hardened with rate limiting, CORS restrictions, and security headers.
 """
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import engine, Base
+from app.core.rate_limit import limiter
 from app.api.router import api_router
 from app.schemas.schemas import HealthResponse
 
@@ -45,24 +50,70 @@ async def lifespan(app: FastAPI):
 
 
 # ── Create FastAPI App ───────────────────────────────────
+# Disable Swagger docs in production (only accessible when DEBUG=True)
 app = FastAPI(
     title=settings.app_name,
     description="AI-powered code editor backend — powered by Google Gemini",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url="/docs" if settings.debug else None,
+    redoc_url="/redoc" if settings.debug else None,
+    openapi_url="/openapi.json" if settings.debug else None,
 )
 
-# ── CORS Middleware ──────────────────────────────────────
-# In production, restrict origins; in development, allow all
-allowed_origins = ["*"]
+# ── Rate Limiting ────────────────────────────────────────
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── CORS Middleware (SECURITY FIX) ──────────────────────
+# Restrict to known frontend origins only
+allowed_origins = [
+    "http://localhost:5173",           # Local Vite dev server
+    "http://localhost:3000",           # Alternative local dev
+    "https://codegenie-web.onrender.com",  # Production frontend
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "OPTIONS", "HEAD"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Key"],
 )
+
+
+# ── Security Headers Middleware ─────────────────────────
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    # Prevent MIME-type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    # Enforce HTTPS (1 year)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # Content Security Policy
+    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'"
+    # Prevent information leakage
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
+
+
+# ── Request Body Size Limit Middleware ───────────────────
+MAX_BODY_SIZE = 1 * 1024 * 1024  # 1MB
+
+@app.middleware("http")
+async def limit_request_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_BODY_SIZE:
+        return JSONResponse(
+            status_code=413,
+            content={"detail": "Request body too large. Maximum size is 1MB."},
+        )
+    return await call_next(request)
+
 
 # ── Mount API Router ─────────────────────────────────────
 app.include_router(api_router)

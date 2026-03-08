@@ -3,7 +3,9 @@ CodeGenie AI Editor — Code Explanation Endpoint
 POST /api/v1/explain — Explain selected code using Gemini
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from app.core.rate_limit import limiter
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user
@@ -25,7 +27,9 @@ class ExplainResponse(BaseModel):
 
 
 @router.post("", response_model=ExplainResponse)
+@limiter.limit("30/minute")
 async def explain_code(
+    request: Request,
     payload: ExplainRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -53,4 +57,4 @@ async def explain_code(
             model=settings.gemini_model,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Explain error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred. Please try again. (ref: {type(e).__name__})")
