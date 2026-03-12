@@ -4,6 +4,10 @@
     "version": "0.1.0",
     "description": "CodeGenie AI Editor — AI-powered code editor",
     "author": "CodeGenie Team",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/7abhishe/AiEditor.git"
+    },
     "type": "module",
     "main": "electron/main.js",
     "scripts": {
@@ -36,7 +40,8 @@
         },
         "directories": {
             "output": "release"
-        }
+        },
+        "publish": null
     },
     "dependencies": {
         "@monaco-editor/react": "^4.7.0",
