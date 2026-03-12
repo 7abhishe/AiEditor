@@ -35,9 +35,10 @@ jobs:
         run: npx vite build
 
       - name: Package Electron app
-        run: npx electron-builder --mac --arm64
+        run: npx electron-builder --mac --arm64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -73,9 +74,10 @@ jobs:
         run: npx vite build
 
       - name: Package Electron app
-        run: npx electron-builder --win
+        run: npx electron-builder --win --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -109,9 +111,10 @@ jobs:
         run: npx vite build
 
       - name: Package Electron app
-        run: npx electron-builder --linux
+        run: npx electron-builder --linux --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: electron-builder
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
