@@ -31,15 +31,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build React app
-        run: npx vite build
-
-      - name: Package Electron app
-        run: npx electron-builder --mac --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          DEBUG: electron-builder
+      - name: Build and Package
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          package_root: frontend
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_script_name: build
+          args: --mac --publish never
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -72,15 +70,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build React app
-        run: npx vite build
-
-      - name: Package Electron app
-        run: npx electron-builder --win --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          DEBUG: electron-builder
+      - name: Build and Package
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          package_root: frontend
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_script_name: build
+          args: --win --publish never
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -111,15 +107,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build React app
-        run: npx vite build
-
-      - name: Package Electron app
-        run: npx electron-builder --linux --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          DEBUG: electron-builder
+      - name: Build and Package
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          package_root: frontend
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_script_name: build
+          args: --linux --publish never
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
