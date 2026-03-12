@@ -3,6 +3,7 @@
     "private": true,
     "version": "0.1.0",
     "description": "CodeGenie AI Editor — AI-powered code editor",
+    "author": "CodeGenie Team",
     "type": "module",
     "main": "electron/main.js",
     "scripts": {
