@@ -6,9 +6,8 @@ Handles JWT token generation and password hashing using passlib and python-jose.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union, Optional
 
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
-from pydantic import ValidationError
 
 from app.core.config import settings
 

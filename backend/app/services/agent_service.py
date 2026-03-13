@@ -224,7 +224,7 @@ Example:
                 )
                 steps.append(step)
             return steps
-        except (json.JSONDecodeError, ValueError) as e:
+        except (json.JSONDecodeError, ValueError):
             # If parsing fails, create a single "think" step
             return [AgentStep(
                 type=StepType.THINK,

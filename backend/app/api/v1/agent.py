@@ -4,7 +4,7 @@ Provides REST + SSE endpoints for the autonomous coding agent.
 """
 
 import json
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from app.core.rate_limit import limiter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field

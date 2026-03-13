@@ -6,7 +6,6 @@ Walks project directories, chunks code files, and stores embeddings in FAISS.
 import os
 import asyncio
 from pathlib import Path
-from typing import Optional
 from datetime import datetime, timezone
 
 from app.services.vector_store import vector_store

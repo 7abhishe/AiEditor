@@ -42,7 +42,7 @@ async def get_current_user(
 
     # Query the database for the user
     result = await db.execute(
-        select(User).where(User.id == token_data.user_id, User.is_active == True)
+        select(User).where(User.id == token_data.user_id, User.is_active)
     )
     user = result.scalar_one_or_none()
     

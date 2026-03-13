@@ -128,7 +128,7 @@ class VectorStore:
         results = []
 
         try:
-            import faiss
+            import faiss  # noqa: F401
             if self._index is not None and self._index.ntotal > 0:
                 k = min(top_k, self._index.ntotal)
                 scores, indices = self._index.search(query_vec, k)

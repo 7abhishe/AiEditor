@@ -4,8 +4,7 @@ Provides Git operations using subprocess calls to the git CLI.
 """
 
 import asyncio
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from app.services.ai_service import ai_service
 
 
