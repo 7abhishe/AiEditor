@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import Editor from '@monaco-editor/react';
+import AdaptiveEditor from './AdaptiveEditor';
 
 // Map file extensions to Monaco language IDs
 const LANG_MAP = {
@@ -234,31 +234,12 @@ export default function EditorPanel({ onExplain, onFindBugs, onRefactor, onGener
             {/* Editor or Empty State */}
             {currentTab ? (
                 <div className="editor-container">
-                    <Editor
-                        height="100%"
+                    <AdaptiveEditor
                         language={currentTab.language}
                         value={currentTab.content}
                         theme="vs-dark"
                         onChange={handleEditorChange}
                         onMount={handleEditorMount}
-                        options={{
-                            fontSize: 14,
-                            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                            fontLigatures: true,
-                            minimap: { enabled: true, scale: 1 },
-                            scrollBeyondLastLine: false,
-                            wordWrap: 'off',
-                            lineNumbers: 'on',
-                            renderLineHighlight: 'all',
-                            cursorBlinking: 'smooth',
-                            cursorSmoothCaretAnimation: 'on',
-                            smoothScrolling: true,
-                            padding: { top: 10 },
-                            bracketPairColorization: { enabled: true },
-                            guides: { bracketPairs: 'active' },
-                            suggest: { showWords: true },
-                            tabSize: 2,
-                        }}
                     />
                 </div>
             ) : (
